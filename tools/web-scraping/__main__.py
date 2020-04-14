@@ -213,13 +213,20 @@ class Covid19CasesListingWeb:
 
 
 class Covid19CasesListingExcel(Covid19CasesListingWeb):
-    def __init__(self, filepath):
+    def __init__(self, filepath, local_filepath=True):
         """Initialise the object.
         
         :param str filepath: Path to Excel workbook.
+        :param bool local_filepath: True if the filepath given is on disk
         """
         self.filepath = filepath
-        self.excel_reader = ExcelReader(self.filepath)
+        if local_filepath:
+            r = requests.get(self.filepath)
+            with open("cases.xlsx", mode="wb") as localfile:
+                localfile.write(r.content)
+            self.excel_reader = ExcelReader("cases.xlsx")
+        else:
+            self.excel_reader = ExcelReader(self.filepath)
     
     def _get_cases_table(self, i):
         if i == 0:
