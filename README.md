@@ -13,5 +13,5 @@ pip3 install -e .
 
 ## Running
 ```
-./ main
+./main
 ```
