@@ -27,6 +27,7 @@ import requests
 
 NZ_MOH_COV19_DETAILS_PAGE = "https://www.health.govt.nz/our-work/diseases-and-conditions/covid-19-novel-coronavirus/covid-19-current-situation/covid-19-current-cases/covid-19-current-cases-details"
 NZ_MOH_DOMAIN = "https://www.health.govt.nz"
+DIRECTORY_NAME = "/system"
 
 
 def date_to_string(date_obj):
@@ -43,7 +44,7 @@ def retrieve_excel_urlpath():
     html = BeautifulSoup(page.text, "html.parser")
     for link in html.find_all("a", href=True):
         dir_link = link["href"]
-        if dir_link[:7] == "/system":
+        if dir_link[:7] == DIRECTORY_NAME:
             return NZ_MOH_DOMAIN + str(dir_link)
 
 
