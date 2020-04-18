@@ -17,20 +17,14 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 PURPOSE
-Scrapes the NZ Health Ministry website for data on the CoVID-19 cases.
-Outputs the data into a CSV file for later use.
-
-PRE-REQUISITES
-See dependencies.txt for details.
+Scrape the NZ Health Ministry website and/or Excel file for data on the CoVID-19
+cases.
 """
 
 
 import requests
-import bs4
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
-import plotly.graph_objects as go
-from datetime import datetime
 
 
 class Website:
@@ -265,77 +259,17 @@ class Covid19CasesListingExcel(Covid19CasesListingWeb):
 if __name__ == "__main__":
     # WHAT IS THIS FOR?
     # Test if the files work here.
-    # Retrieve the link to the correct excel file
-    res = requests.get('https://www.health.govt.nz/our-work/diseases-and-conditions/covid-19-novel-coronavirus/covid-19-current-situation/covid-19-current-cases/covid-19-current-cases-details')
-    soup = bs4.BeautifulSoup(res.text, 'html.parser')
-    for link in soup.find_all('a', href = True):
-        x = link['href']
-        if x[:7] == '/system':
-            data = 'https://www.health.govt.nz' + str(x)
-        else:
-            pass
-
+    
     url = "https://www.health.govt.nz/our-work/diseases-and-conditions/covid-19-novel-coronavirus/covid-19-current-situation/covid-19-current-cases/covid-19-current-cases-details"
-    excel_filepath = data # Please download the latest Excel file from 
+    # excel_filepath = "https://www.health.govt.nz/system/files/documents/pages/covidcase_list_18_april_2020.xlsx" # Please download the latest Excel file from 
+    excel_filepath = "https://www.health.govt.nz/system/files/documents/pages/web-covid-confprob_20200418-2.xlsx"
     # https://www.health.govt.nz/our-work/diseases-and-conditions/covid-19-novel-coronavirus/covid-19-current-situation/covid-19-current-cases/covid-19-current-cases-details
     
     covid19 = Covid19CasesListingExcel(excel_filepath)
     formatted = covid19.get_confirmed_cases()
-
     
-    dates_list = []
-    gender_list = []
-    age_list = []
-    dhb_list = []
-    wentOverseas_list = []
-
-    for line in formatted:
-        dates_list.append(line[0])
-        dates_list.sort(key = lambda date: datetime.strptime(date, '%d/%m/%Y'))
-        gender_list.append(line[1])
-        age_list.append(line[2])
-        dhb_list.append(line[3])
-        wentOverseas_list.append(line[4])
-    
-    dates_dict = {}
-    for i in range(len(dates_list)):
-        dates_dict[dates_list[i]] = dates_list.count(dates_list[i])
-    dates_keys, dates_values = zip(*dates_dict.items()) 
-
-    gender_dict = {}
-    for i in range(len(gender_list)):
-        gender_dict[gender_list[i]] = dates_list.count(gender_list[i])
-
-    age_dict = {}
-    for i in range(len(age_list)):
-        age_dict[age_list[i]] = age_list.count(age_list[i])
-    
-    dhb_dict = {}
-    for i in range(len(dates_list)):
-        dhb_dict[age_list[i]] = dhb_list.count(dhb_list[i])
-
-    wentOverseas_dict = {}
-    for i in range(len(wentOverseas_list)):
-        wentOverseas_dict[wentOverseas_list[i]] = wentOverseas_list.count(wentOverseas_list[i])
-
-    # Line chart for Date vs no. of confirmed deaths
-    # fig1 = go.Figure()
-
-    # fig1.add_trace(go.Scatter(
-    #     x=dates_keys,
-    #     y=dates_values,
-    #     connectgaps = True
-    # ))
-    
-    # fig1.show()
-    
-
-    # Bar chart for Date vs no. of confirmed deaths
-    # fig = go.Figure([go.Bar(x=dates_keys, y=dates_values)])
-    # fig.show()
-
-    
-        
+    for line in formatted[:10]:
+        print(line)
     
     # print()
     # print()
@@ -350,3 +284,6 @@ if __name__ == "__main__":
     # print(covid19.get_stat_count(1))
     # print()
     # print(covid19.get_stat_count(2))
+    # print(formatted)
+    # print("\n\n\n\n")
+    # print(type(formatted))
