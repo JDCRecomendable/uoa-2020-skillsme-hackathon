@@ -18,8 +18,10 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 """
 
 from application.utils import retrieve_excel_urlpath
-from application.web_scraping import Covid19CasesListingExcel
-# import plotly.graph_objects as go
+from application.web_scraping import Covid19CasesListingExcel, Covid19CasesListingWeb
+import plotly.graph_objects as go
+import plotly.express as px
+import os
 from datetime import datetime
 
 
@@ -39,59 +41,107 @@ excel_filepath = data # Please download the latest Excel file from
 # https://www.health.govt.nz/our-work/diseases-and-conditions/covid-19-novel-coronavirus/covid-19-current-situation/covid-19-current-cases/covid-19-current-cases-details
 
 covid19 = Covid19CasesListingExcel(excel_filepath)
-formatted = covid19.get_confirmed_cases()
+
+confirmed_or_probable = ['Confirmed Cases', 'Probable Cases']
+def confirmed():
+
+    formatted = covid19.get_confirmed_cases()
 
 
-dates_list = []
-gender_list = []
-age_list = []
-dhb_list = []
-wentOverseas_list = []
+    dates_list = []
+    gender_list = []
+    age_list = []
+    dhb_list = []
+    wentOverseas_list = []
 
-for line in formatted:
-    dates_list.append(line[0])
-    dates_list.sort(key = lambda date: datetime.strptime(date, '%d/%m/%Y'))
-    gender_list.append(line[1])
-    age_list.append(line[2])
-    dhb_list.append(line[3])
-    wentOverseas_list.append(line[4])
+    for line in formatted:
+        dates_list.append(line[0])
+        dates_list.sort(key = lambda date: datetime.strptime(date, '%d/%m/%Y'))
+        gender_list.append(line[1])
+        age_list.append(line[2])
+        dhb_list.append(line[3])
+        wentOverseas_list.append(line[4])
 
-dates_dict = {}
-for i in range(len(dates_list)):
-    dates_dict[dates_list[i]] = dates_list.count(dates_list[i])
-dates_keys, dates_values = zip(*dates_dict.items()) 
+    dates_dict = {}
+    for i in range(len(dates_list)):
+        dates_dict[dates_list[i]] = dates_list.count(dates_list[i])
+    dates_keys, dates_values = zip(*dates_dict.items()) 
 
-gender_dict = {}
-for i in range(len(gender_list)):
-    gender_dict[gender_list[i]] = dates_list.count(gender_list[i])
+    gender_dict = covid19.get_stat_count(1)
+    del gender_dict[None]
+    gender_keys, gender_values = zip(*gender_dict.items()) 
 
-age_dict = {}
-for i in range(len(age_list)):
-    age_dict[age_list[i]] = age_list.count(age_list[i])
+    age_dict = {}
+    for i in range(len(age_list)):
+        age_dict[age_list[i]] = age_list.count(age_list[i])
+    age_keys, age_values = zip(*age_dict.items()) 
 
-dhb_dict = {}
-for i in range(len(dates_list)):
-    dhb_dict[age_list[i]] = dhb_list.count(dhb_list[i])
+    dhb_dict = covid19.get_region_count_confirmed()
+    dhb_keys, dhb_values = zip(*dhb_dict.items()) 
 
-wentOverseas_dict = {}
-for i in range(len(wentOverseas_list)):
-    wentOverseas_dict[wentOverseas_list[i]] = wentOverseas_list.count(wentOverseas_list[i])
+    wentOverseas_dict = {}
+    for i in range(len(wentOverseas_list)):
+        wentOverseas_dict[wentOverseas_list[i]] = wentOverseas_list.count(wentOverseas_list[i])
+    del wentOverseas_dict[' ']
+    wentOverseas_keys, wentOverseas_values = zip(*wentOverseas_dict.items()) 
 
-# Line chart for Date vs no. of confirmed deaths
-# fig1 = go.Figure()
+    chart_titles = ['Dates', 'Gender', 'Age', 'Region', 'Went Overseas']
 
-# fig1.add_trace(go.Scatter(
-#     x=dates_keys,
-#     y=dates_values,
-#     connectgaps = True
-# ))
+    # Line chart function
+    def line_chart(keys, values, cp, title):
+        fig = go.Figure()
 
-# fig1.show()
+        fig.add_trace(go.Scatter(
+            x=keys,
+            y=values,
+            connectgaps = True
+        ))
 
-# Bar chart for Date vs no. of confirmed deaths
-# fig = go.Figure([go.Bar(x=dates_keys, y=dates_values)])
-# fig.show()
+        fig.update_layout(
+            title="Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title],
+            yaxis_title=confirmed_or_probable[cp]+' cases',
+            xaxis_title=chart_titles[title]
+        )
+        os.remove("Line chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
+        fig.write_html("Line chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
 
+    # Bar Chart Function
+    def bar_chart(keys, values, cp, title):
+        fig = go.Figure([go.Bar(
+        x=keys, 
+        y=values,  
+        )])
+        fig.update_layout(
+            title="Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title],
+            yaxis_title=confirmed_or_probable[cp]+' cases',
+            xaxis_title=chart_titles[title]
+        )
+
+        os.remove("Bar chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
+        fig.write_html("Bar chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
+
+    # Pie Chart Function
+    def pie_chart(keys, values, cp, title):
+        labels = keys
+        values = values
+
+        fig = go.Figure(data=[go.Pie(title="Number of" + confirmed_or_probable[cp] + 'vs' + chart_titles[title], labels=labels, values=values,yaxis_title=confirmed_or_probable[cp]+'cases', xaxis_title=chart_titles[title])])
+        fig.update_layout(
+            title="Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title],
+            yaxis_title=confirmed_or_probable[cp]+' cases',
+            xaxis_title=chart_titles[title]
+        )
+        os.remove("Pie chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
+        fig.write_html("Pie chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
+
+    #NZ map
+
+
+    # bar_chart(dates_keys, dates_values, 0, 0)
+    # bar_chart(age_keys, age_values, 0, 2)
+    # bar_chart(gender_keys, gender_values, 0, 1)
+    # bar_chart(wentOverseas_keys, wentOverseas_values, 0, 4)
+    # bar_chart(dhb_keys, dhb_values, 0, 3)
 
 
 

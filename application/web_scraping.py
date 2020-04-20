@@ -283,7 +283,7 @@ if __name__ == "__main__":
     # print()
     # print(covid19.get_stat_count(1))
     # print()
-    # print(covid19.get_stat_count(2))
+    print(covid19.get_stat_count(2))
     # print(formatted)
     # print("\n\n\n\n")
     # print(type(formatted))
