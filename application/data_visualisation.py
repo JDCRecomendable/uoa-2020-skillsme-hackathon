@@ -43,7 +43,9 @@ excel_filepath = data # Please download the latest Excel file from
 covid19 = Covid19CasesListingExcel(excel_filepath)
 
 confirmed_or_probable = ['Confirmed Cases', 'Probable Cases']
-def confirmed():
+chart_titles = ['Dates', 'Gender', 'Age', 'Region', 'Went Overseas']
+
+class Confirmed_case:
 
     formatted = covid19.get_confirmed_cases()
 
@@ -85,65 +87,127 @@ def confirmed():
     del wentOverseas_dict[' ']
     wentOverseas_keys, wentOverseas_values = zip(*wentOverseas_dict.items()) 
 
-    chart_titles = ['Dates', 'Gender', 'Age', 'Region', 'Went Overseas']
+class Probable_case:
 
-    # Line chart function
-    def line_chart(keys, values, cp, title):
-        fig = go.Figure()
-
-        fig.add_trace(go.Scatter(
-            x=keys,
-            y=values,
-            connectgaps = True
-        ))
-
-        fig.update_layout(
-            title="Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title],
-            yaxis_title=confirmed_or_probable[cp]+' cases',
-            xaxis_title=chart_titles[title]
-        )
-        os.remove("Line chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
-        fig.write_html("Line chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
-
-    # Bar Chart Function
-    def bar_chart(keys, values, cp, title):
-        fig = go.Figure([go.Bar(
-        x=keys, 
-        y=values,  
-        )])
-        fig.update_layout(
-            title="Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title],
-            yaxis_title=confirmed_or_probable[cp]+' cases',
-            xaxis_title=chart_titles[title]
-        )
-
-        os.remove("Bar chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
-        fig.write_html("Bar chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
-
-    # Pie Chart Function
-    def pie_chart(keys, values, cp, title):
-        labels = keys
-        values = values
-
-        fig = go.Figure(data=[go.Pie(title="Number of" + confirmed_or_probable[cp] + 'vs' + chart_titles[title], labels=labels, values=values,yaxis_title=confirmed_or_probable[cp]+'cases', xaxis_title=chart_titles[title])])
-        fig.update_layout(
-            title="Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title],
-            yaxis_title=confirmed_or_probable[cp]+' cases',
-            xaxis_title=chart_titles[title]
-        )
-        os.remove("Pie chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
-        fig.write_html("Pie chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".html")
-
-    #NZ map
+    formatted = covid19.get_probable_cases()
 
 
-    # bar_chart(dates_keys, dates_values, 0, 0)
-    # bar_chart(age_keys, age_values, 0, 2)
-    # bar_chart(gender_keys, gender_values, 0, 1)
-    # bar_chart(wentOverseas_keys, wentOverseas_values, 0, 4)
-    # bar_chart(dhb_keys, dhb_values, 0, 3)
+    dates_list = []
+    gender_list = []
+    age_list = []
+    dhb_list = []
+    wentOverseas_list = []
+
+    for line in formatted:
+        dates_list.append(line[0])
+        dates_list.sort(key = lambda date: datetime.strptime(date, '%d/%m/%Y'))
+        gender_list.append(line[1])
+        age_list.append(line[2])
+        dhb_list.append(line[3])
+        wentOverseas_list.append(line[4])
+
+    dates_dict = {}
+    for i in range(len(dates_list)):
+        dates_dict[dates_list[i]] = dates_list.count(dates_list[i])
+    dates_keys, dates_values = zip(*dates_dict.items()) 
+
+    gender_dict = covid19.get_stat_count(1)
+    del gender_dict[None]
+    gender_keys, gender_values = zip(*gender_dict.items()) 
+
+    age_dict = {}
+    for i in range(len(age_list)):
+        age_dict[age_list[i]] = age_list.count(age_list[i])
+    age_keys, age_values = zip(*age_dict.items()) 
+
+    dhb_dict = covid19.get_region_count_probable()
+    dhb_keys, dhb_values = zip(*dhb_dict.items()) 
+
+    wentOverseas_dict = {}
+    for i in range(len(wentOverseas_list)):
+        wentOverseas_dict[wentOverseas_list[i]] = wentOverseas_list.count(wentOverseas_list[i])
+    del wentOverseas_dict[' ']
+    wentOverseas_keys, wentOverseas_values = zip(*wentOverseas_dict.items()) 
 
 
+class combined_cases:
+    dates_combined = {**Confirmed_case.dates_dict, **Probable_case.dates_dict}
+    dates_combined_keys, dates_combined_values = zip(*dates_combined.items())
+
+    age_combined = {**Confirmed_case.age_dict, **Probable_case.age_dict}
+    age_combined_keys, age_combined_values = zip(*age_combined.items())
+
+    gender_combined = {**Confirmed_case.gender_dict, **Probable_case.gender_dict}
+    gender_combined_keys, gender_combined_values = zip(*gender_combined.items())
+
+    dhb_combined = {**Confirmed_case.dhb_dict, **Probable_case.dhb_dict}
+    dhb_combined_keys, dhb_combined_values = zip(*dhb_combined.items())
+
+    wentOverseas_combined = {**Confirmed_case.wentOverseas_dict, **Probable_case.wentOverseas_dict}
+    wentOverseas_combined_keys, wentOverseas_combined_values = zip(*wentOverseas_combined.items())
+
+# Line chart function
+def line_chart(keys, values, cp, title):
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=keys,
+        y=values,
+        connectgaps = True
+    ))
+
+    fig.update_layout(
+        title="Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title],
+        yaxis_title=confirmed_or_probable[cp]+' cases',
+        xaxis_title=chart_titles[title]
+    )
+    try:
+        os.remove("Line chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".png")
+    except:
+        fig.write_image("Line chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".png")
+
+# Bar Chart Function
+def bar_chart(keys, values, cp, title):
+    fig = go.Figure([go.Bar(
+    x=keys, 
+    y=values,  
+    )])
+    fig.update_layout(
+        title="Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title],
+        yaxis_title=confirmed_or_probable[cp]+' cases',
+        xaxis_title=chart_titles[title]
+    )
+    try:
+        os.remove("Bar chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".png")
+    except:
+        fig.write_image("Bar chart of " + "Number of " + confirmed_or_probable[cp] + ' vs ' + chart_titles[title] + ".png")
+
+# Pie Chart Function
+def pie_chart(keys, values):
+    labels = keys
+    values = values
+
+    fig = go.Figure(data=[go.Pie(labels=labels, values=values)])
+    fig.update_layout(
+        title="Number of confirmed cases vs probable cases"
+    )
+    try:
+        os.remove("Pie chart of confirmed cases vs probable.png")
+    except:
+        fig.write_image("Pie chart of confirmed cases vs probable.png")
+
+bar_chart(Confirmed_case.dates_keys, Confirmed_case.dates_values, 0, 0)
+bar_chart(Confirmed_case.age_keys, Confirmed_case.age_values, 0, 2)
+bar_chart(Confirmed_case.gender_keys, Confirmed_case.gender_values, 0, 1)
+bar_chart(Confirmed_case.wentOverseas_keys, Confirmed_case.wentOverseas_values, 0, 4)
+bar_chart(Confirmed_case.dhb_keys, Confirmed_case.dhb_values, 0, 3)
+bar_chart(Probable_case.dates_keys, Probable_case.dates_values, 1, 0)
+bar_chart(Probable_case.age_keys, Probable_case.age_values, 1, 2)
+bar_chart(Probable_case.gender_keys, Probable_case.gender_values, 1, 1)
+bar_chart(Probable_case.wentOverseas_keys, Probable_case.wentOverseas_values, 1, 4)
+bar_chart(Probable_case.dhb_keys, Probable_case.dhb_values, 1, 3)
+
+pie_chart(combined_cases.dates_combined_keys, combined_cases.dates_combined_values)
 
 # print()
 # print()
